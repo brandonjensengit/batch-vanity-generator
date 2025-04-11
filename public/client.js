@@ -4,7 +4,7 @@ const socket = io(); // Connect to the server
 // Form elements
 const form = document.getElementById('configForm');
 const prefixInput = document.getElementById('prefix');
-const suffixInput = document.getElementById('suffix');
+const suffixInput = document.getElementById('suffix'); // <-- ADD THIS LINE
 const includesInput = document.getElementById('includes');
 const caseSensitiveInput = document.getElementById('caseSensitive');
 const countInput = document.getElementById('count');
@@ -13,15 +13,16 @@ const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const statusDiv = document.getElementById('status');
 const outputPre = document.getElementById('output');
-const downloadBtn = document.getElementById('downloadBtn'); // Get download button
+const downloadBtn = document.getElementById('downloadBtn');
+const revealBtn = document.getElementById('revealBtn');
 
 let isGenerating = false;
 let foundCounter = 0;
+let generatedKeys = []; // Array to store keys before revealing
 
-// --- Form Submission ---
+// --- Form Submission (RESET LOGIC ADDED) ---
 form.addEventListener('submit', (e) => {
-    e.preventDefault(); // Prevent page reload
-
+    e.preventDefault();
     if (isGenerating) return;
 
     const config = {
@@ -43,17 +44,21 @@ form.addEventListener('submit', (e) => {
     console.log('Sending config:', config);
     socket.emit('startGeneration', config);
 
-    // Update UI for starting
+    // --- Reset UI for new generation ---
     isGenerating = true;
     foundCounter = 0;
+    generatedKeys = []; // Clear stored keys
     startBtn.disabled = true;
     stopBtn.disabled = false;
-    downloadBtn.disabled = true; // Disable download button on new generation start
+    downloadBtn.disabled = true; // Disable download button
+    revealBtn.style.display = 'none'; // Hide reveal button
     outputPre.textContent = ''; // Clear previous output
+    outputPre.style.display = 'none'; // Hide output area
     statusDiv.textContent = 'Status: Requesting start...';
+    statusDiv.style.display = 'block'; // Ensure status is visible
 });
 
-// --- Stop Button ---
+// --- Stop Button (No Change) ---
 stopBtn.addEventListener('click', () => {
     if (!isGenerating) return;
     console.log('Requesting stop...');
@@ -61,133 +66,134 @@ stopBtn.addEventListener('click', () => {
     statusDiv.textContent = 'Status: Requesting stop...';
 });
 
-// --- Download Button ---
+// --- Download Button (No Change in listener logic, but enabling is moved) ---
 downloadBtn.addEventListener('click', () => {
-    let fileContent = ""; // String to build file content
-    const keyPairDivs = outputPre.querySelectorAll('.key-pair'); // Get all result divs
+    let fileContent = "";
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `vanity_keys_${timestamp}.txt`;
 
+    // Build content directly from the displayed #output (only possible AFTER reveal)
+    const keyPairDivs = outputPre.querySelectorAll('.key-pair');
     if (keyPairDivs.length === 0) {
-        alert('Nothing to download!');
+        alert('Nothing to download!'); // Should not happen if button is enabled correctly
         return;
     }
 
-    // Iterate through each key pair div displayed on the page
     keyPairDivs.forEach((div, index) => {
         const addressSpan = div.querySelector('span:first-child');
         const keySpan = div.querySelector('span:last-child');
-
         if (addressSpan && keySpan) {
-            // Append "Address: ..." line
             fileContent += addressSpan.textContent + "\n";
-            // Append "Private Key: ..." line
             fileContent += keySpan.textContent + "\n";
-
-            // Add separator after each pair (except the last one)
             if (index < keyPairDivs.length - 1) {
-                // --- CHOOSE ONE SEPARATOR OPTION ---
-                // Option 1: Add an extra blank line
-                fileContent += "\n";
-
-                // Option 2: Add a separator line (like '---')
-                // fileContent += "---\n\n";
-                // --- END CHOOSE ---
+                fileContent += "\n"; // Add blank line separator
             }
         }
     });
 
-    // Create and trigger download link using the constructed fileContent string
     try {
         const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
         const link = document.createElement('a');
-
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.style.display = 'none';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        URL.revokeObjectURL(link.href); // Clean up
-
+        link.href = URL.createObjectURL(blob); link.download = filename; link.style.display = 'none';
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     } catch (error) {
-        console.error("Error creating download link:", error);
-        alert("Could not create download file.");
+        console.error("Error creating download link:", error); alert("Could not create download file.");
+    }
+});
+
+// --- Reveal Button Listener ---
+revealBtn.addEventListener('click', () => {
+    // Clear any previous content just in case
+    outputPre.textContent = '';
+
+    // Populate the output area from the stored keys
+    generatedKeys.forEach(data => {
+        const keyPairDiv = document.createElement('div');
+        keyPairDiv.classList.add('key-pair');
+
+        const addressSpan = document.createElement('span');
+        addressSpan.textContent = `Address: ${data.address}`;
+
+        const keySpan = document.createElement('span');
+        keySpan.textContent = `Private Key: ${data.privateKey}`; // Use stored key
+
+        keyPairDiv.appendChild(addressSpan);
+        keyPairDiv.appendChild(keySpan);
+        outputPre.appendChild(keyPairDiv);
+    });
+
+    // Show the output area
+    outputPre.style.display = 'block';
+    // Hide the reveal button itself
+    revealBtn.style.display = 'none';
+    // Enable the download button now
+    if (generatedKeys.length > 0) {
+        downloadBtn.disabled = false;
     }
 });
 
 
 // --- Socket Event Listeners ---
-socket.on('connect', () => {
-    console.log('Connected to server with ID:', socket.id);
-    statusDiv.textContent = 'Status: Connected. Ready to start.';
-});
+socket.on('connect', () => { /* ... no change ... */ });
+socket.on('disconnect', () => { /* ... no change ... */ });
+socket.on('statusUpdate', (message) => { /* ... no change ... */ });
 
-socket.on('disconnect', () => {
-    console.log('Disconnected from server.');
-    statusDiv.textContent = 'Status: Disconnected from server.';
-    isGenerating = false;
-    startBtn.disabled = false;
-    stopBtn.disabled = true;
-    // Keep download button state as is - user might still want to download existing content
-});
-
-socket.on('statusUpdate', (message) => {
-    console.log('Status:', message);
-    statusDiv.textContent = `Status: ${message}`;
-});
-
+// MODIFIED: Store keys instead of displaying immediately
 socket.on('foundKey', (data) => {
     foundCounter++;
-    console.log('Found key:', data);
+    console.log('Stored key:', data.address); // Log address only for privacy
+    generatedKeys.push(data); // Store the key pair data
 
-    // Enable download button when the first key is found
-    if (foundCounter === 1) {
-        downloadBtn.disabled = false;
-    }
-
-    const keyPairDiv = document.createElement('div');
-    keyPairDiv.classList.add('key-pair');
-
-    const addressSpan = document.createElement('span');
-    addressSpan.textContent = `Address: ${data.address}`;
-
-    const keySpan = document.createElement('span');
-    keySpan.textContent = `Private Key: ${data.privateKey}`;
-
-    keyPairDiv.appendChild(addressSpan);
-    keyPairDiv.appendChild(keySpan);
-
-    outputPre.appendChild(keyPairDiv);
-    outputPre.scrollTop = outputPre.scrollHeight; // Auto-scroll
+    // Don't enable download button here
+    // Don't append to outputPre here
 
     statusDiv.textContent = `Status: Found ${foundCounter} address(es)... Searching...`;
 });
 
+// MODIFIED: Show Reveal button on completion
 socket.on('generationComplete', () => {
     console.log('Generation complete.');
     statusDiv.textContent = `Status: Generation Complete (${foundCounter} found).`;
     isGenerating = false;
     startBtn.disabled = false;
     stopBtn.disabled = true;
-    // Keep download button enabled if there's content
-    if (foundCounter === 0) {
-         downloadBtn.disabled = true;
+
+    // Trigger confetti
+    if (typeof confetti === 'function') {
+        confetti({ particleCount: 150, spread: 90, origin: { y: 0.6 } });
+    }
+
+    // Show REVEAL button if keys were found
+    if (foundCounter > 0) {
+        revealBtn.style.display = 'inline-block'; // Show the reveal button
+        revealBtn.disabled = false;
+        // Keep download button disabled until keys are revealed
+        downloadBtn.disabled = true;
+    } else {
+        // No keys found, ensure buttons are in correct state
+        revealBtn.style.display = 'none';
+        downloadBtn.disabled = true;
     }
 });
 
+// MODIFIED: Ensure reveal button is hidden on stop
 socket.on('generationStopped', () => {
     console.log('Generation stopped.');
-     if (isGenerating) {
-        statusDiv.textContent = 'Status: Generation Stopped.';
-     }
+    if (isGenerating) { // Only update status if it wasn't already 'Complete'
+       statusDiv.textContent = 'Status: Generation Stopped.';
+    }
     isGenerating = false;
     startBtn.disabled = false;
     stopBtn.disabled = true;
-     // Keep download button enabled if there's content
-     if (foundCounter === 0) {
-         downloadBtn.disabled = true;
+
+    // Show REVEAL button if keys were found before stopping
+    if (foundCounter > 0) {
+        revealBtn.style.display = 'inline-block';
+        revealBtn.disabled = false;
+        downloadBtn.disabled = true; // Keep download disabled
+    } else {
+        revealBtn.style.display = 'none';
+        downloadBtn.disabled = true;
     }
 });

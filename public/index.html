@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETH Batch Generator</title> <link rel="stylesheet" href="style.css">
+    <title>ETH Batch Generator</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>BATCH-ETH</h1> <p class="subtitle">batch ETH address generator</p> <form id="configForm">
+        <h1>BATCH-ETH</h1>
+        <p class="subtitle">ETH batch address generator</p>
+
+        <form id="configForm">
             <fieldset>
                 <legend>Configuration</legend>
                 <div>
@@ -30,7 +34,7 @@
                     <input type="checkbox" id="caseSensitive" name="caseSensitive" checked>
                 </div>
                 <div>
-                    <label for="count">Address Count:</label>
+                    <label for="count">Number to Find:</label>
                     <input type="number" id="count" name="count" value="1" min="1" max="50" required>
                 </div>
                 <div>
@@ -50,8 +54,12 @@
         </div>
 
         <div id="status">Status: Idle</div>
+        <button type="button" id="revealBtn" class="reveal-button">Reveal addresses and private keys</button>
+
         <pre id="output"></pre>
+
     </div> <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 </body>
 </html>
