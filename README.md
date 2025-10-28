@@ -67,6 +67,8 @@ http://localhost:3000
 
 ### Command Line Interface
 
+#### Standard CLI (Basic)
+
 Edit the configuration in `generate_vanity_threaded.js`:
 
 ```javascript
@@ -82,6 +84,25 @@ const outputFile = 'vanity_wallets_threaded.txt'; // Save to file
 Then run:
 ```bash
 node generate_vanity_threaded.js
+```
+
+#### Secure CLI (Recommended for Production)
+
+For maximum security, use the secure CLI mode with encryption and in-memory options:
+
+```bash
+node generate_secure.js
+```
+
+This interactive tool will guide you through:
+1. Configuring vanity pattern matching
+2. Choosing output mode:
+   - **In-Memory Only (MOST SECURE)**: Keys displayed once in terminal, never written to disk
+   - **Encrypted File**: Keys saved with AES-256-GCM encryption, password-protected
+
+**Decrypting saved files:**
+```bash
+node decrypt_keys.js secure_wallets_2024-01-01.enc
 ```
 
 ## Output Formats
@@ -166,23 +187,85 @@ address,privateKey
 
 ⚠️ **IMPORTANT SECURITY CONSIDERATIONS:**
 
-1. **Private Key Security**:
-   - Never share your private keys with anyone
-   - Store generated keys in a secure, encrypted location
-   - Delete output files after securely storing keys elsewhere
+### Security Levels
 
-2. **Network Security**:
-   - Only run the web interface on trusted networks
-   - Do not expose the server to the public internet without proper authentication
+This tool provides multiple security levels:
 
-3. **Randomness**:
-   - This tool uses cryptographically secure random number generation
-   - Generated addresses are secure for production use
+| Method | Security Level | Best For |
+|--------|---------------|----------|
+| **Secure CLI - In-Memory Mode** | 🔒🔒🔒🔒🔒 HIGHEST | Production wallets, cold storage |
+| **Secure CLI - Encrypted File** | 🔒🔒🔒🔒 HIGH | Long-term storage with password protection |
+| **Standard CLI** | 🔒🔒🔒 MEDIUM | Testing, development |
+| **Web Interface** | 🔒🔒 LOW | Testing only, trusted network |
 
-4. **Generated Files**:
+### Best Practices
+
+1. **For Maximum Security (Production Wallets)**:
+   - Use `node generate_secure.js` with **In-Memory Only** mode
+   - Run on an **air-gapped machine** (completely offline)
+   - Write down keys on paper, never digital storage
+   - Verify keys work by importing to a test wallet first
+   - Store paper backups in multiple secure locations (safe, bank vault)
+
+2. **Using Encrypted File Mode**:
+   - Use a **strong password** (12+ characters, mixed case, numbers, symbols)
+   - Store password separately from encrypted file
+   - Decrypt only when needed on a secure machine
+   - Delete decrypted output immediately after use
+   - Consider using a hardware security module (HSM) for password storage
+
+3. **Private Key Security**:
+   - Never share private keys with anyone
+   - Never transmit keys over the internet (email, chat, cloud storage)
+   - Never screenshot or photograph private keys
+   - Clear clipboard after copying keys
+   - Be aware of shoulder surfing (people looking at your screen)
+
+4. **Network Security**:
+   - **NEVER** expose the web interface to the public internet
+   - Only run on `localhost` (127.0.0.1)
+   - Use a firewall to block external access to port 3000
+   - Disconnect from the internet when generating production keys
+
+5. **File Security**:
    - Output files (`.txt`, `.csv`, `.json`) contain unencrypted private keys
-   - Always delete these files after use
-   - Never commit these files to version control
+   - Delete all output files using secure deletion tools:
+     - macOS: `srm filename.txt` (install with `brew install srm`)
+     - Linux: `shred -u filename.txt`
+     - Windows: Use secure deletion software
+   - Never commit private key files to version control
+   - Encrypted files (`.enc`) are safe to store but require password
+
+6. **Air-Gapped Generation (Maximum Security)**:
+   - Install Node.js and dependencies on an offline computer
+   - Transfer code via USB (scan for malware first)
+   - Generate keys completely offline
+   - Transfer only **public addresses** (never private keys) when going online
+
+7. **Randomness & Cryptographic Security**:
+   - This tool uses Node.js `crypto.randomBytes()` for secure randomness
+   - ethers.js library provides cryptographically secure wallet generation
+   - Generated addresses are suitable for production use
+   - Verify randomness source is working: check `/dev/urandom` (Linux/Mac)
+
+8. **Browser Security (Web Interface)**:
+   - Browser cache is disabled for sensitive data
+   - Private keys displayed in DOM are still visible in browser memory
+   - Use browser private/incognito mode
+   - Close browser completely after use
+   - Clear browser history and cache after generation
+
+9. **Physical Security**:
+   - Ensure no cameras can see your screen
+   - Check for keyloggers or screen recorders
+   - Use a clean, malware-free computer
+   - Consider using a dedicated computer for key generation
+
+10. **Testing Before Production**:
+    - Always test with small amounts first
+    - Verify you can import and access generated wallets
+    - Confirm backup/recovery process works
+    - Use testnet addresses for practice
 
 ## Architecture
 

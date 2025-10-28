@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ETH Vanity Generator</title>
+
+    <!-- Security: Prevent caching of sensitive data -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +18,12 @@
 <body>
     <div class="container">
         <h1>ETH Vanity Address Generator</h1>
+
+        <div class="security-warning">
+            <strong>⚠️ SECURITY WARNING:</strong> This tool generates real Ethereum private keys.
+            For maximum security, use the CLI tool (<code>node generate_secure.js</code>) with in-memory mode.
+            Never expose this web interface to the internet. Keys are displayed in your browser - ensure no one can see your screen.
+        </div>
 
         <form id="configForm">
             <fieldset>
