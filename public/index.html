@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETH Vanity Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>ETH Vanity Address Generator</h1>
+
+        <form id="configForm">
+            <fieldset>
+                <legend>Configuration</legend>
+
+                <div>
+                    <label for="prefix">Prefix:</label>
+                    <input type="text" id="prefix" name="prefix" placeholder="(Optional)">
+                </div>
+                <div>
+                    <label for="suffix">Suffix:</label>
+                    <input type="text" id="suffix" name="suffix" placeholder="(Optional)">
+                </div>
+                <div>
+                    <label for="includes">Includes:</label>
+                    <input type="text" id="includes" name="includes" placeholder="(Optional)">
+                </div>
+                 <div>
+                    <label for="caseSensitive">Case Sensitive:</label>
+                    <input type="checkbox" id="caseSensitive" name="caseSensitive" checked>
+                </div>
+                <div>
+                    <label for="count">Number of Addresses:</label>
+                    <input type="number" id="count" name="count" value="1" min="1" max="50" required>
+                </div>
+                <div>
+                    <label for="threads">Threads:</label>
+                    <input type="number" id="threads" name="threads" value="10" min="1" max="32" required>
+                </div>
+
+                <div>
+                    <label for="outputMode">Output Format:</label>
+                    <select id="outputMode" name="outputMode">
+                        <option value="csv">CSV (address,privateKey)</option>
+                        <option value="addresses">Addresses only</option>
+                        <option value="json">JSON</option>
+                        <option value="pretty" selected>Pretty text</option>
+                        <option value="omnibus">Deployment Set (40 keys: 4 sets x 5 approvers)</option>
+                        <option value="containers-pretty">Containers (Pretty)</option>
+                        <option value="containers-json">Containers (JSON)</option>
+                        <option value="containers-csv">Containers (CSV)</option>
+                    </select>
+                </div>
+
+                <div id="omnibusOptions" style="display:none">
+                    <p class="hint">Deployment Set mode generates 40 addresses (4 sets × 5 approvers × 2 keys). "Number of Addresses" is ignored.</p>
+                </div>
+
+                <div id="containerOptions" style="display:none">
+                    <div>
+                        <label for="containerNames">Container names:</label>
+                        <input type="text" id="containerNames" name="containerNames" value="Omnibus, Investigation, Garbage, Firm Wallet">
+                    </div>
+                    <div>
+                        <label for="approversPerContainer">Approvers per container:</label>
+                        <input type="number" id="approversPerContainer" name="approversPerContainer" value="5" min="1" max="50">
+                    </div>
+                    <p class="hint">In containers mode, total keys generated = containers × approvers × 2 (Signer + Emergency). "Number of Addresses" is ignored.</p>
+                </div>
+            </fieldset>
+            <div class="controls">
+                <button type="submit" id="startBtn">Start Generation</button>
+                <button type="button" id="stopBtn" disabled>Stop Generation</button>
+            </div>
+        </form>
+
+        <div class="output-header">
+            <h2>Output</h2>
+            <button type="button" id="downloadBtn" class="download-button" disabled>Download Results</button>
+        </div>
+
+        <div id="status">Status: Idle</div>
+        <pre id="output"></pre>
+    </div> <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
