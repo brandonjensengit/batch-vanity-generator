@@ -57,7 +57,7 @@ http://localhost:3000
 3. Configure your generation settings:
    - **Vanity Pattern**: Optional prefix, suffix, or contains pattern
    - **Case Sensitive**: Toggle exact case matching
-   - **Number of Addresses**: How many addresses to generate (ignored for Deployment Set/Containers modes)
+   - **Number of Addresses**: How many addresses to generate (ignored for contract deployment sets)
    - **Threads**: Number of CPU threads to use (recommend 10-16 for best performance)
    - **Output Format**: Choose from available formats
 
@@ -112,7 +112,7 @@ node decrypt_keys.js secure_wallets_2024-01-01.enc
 Generates exactly **40 Ethereum addresses** organized into 4 sets, perfect for multi-signature wallet deployments:
 
 ```
-Omnibus
+Contract Type 1
 =======
 
   Approver-1:
@@ -122,19 +122,19 @@ Omnibus
   Approver-2:
     ...
 
-Investigation
+Contract Type 2
 =============
 
   Approver-1:
     ...
 
-Garbage
+Contract Type 3
 =======
 
   Approver-1:
     ...
 
-Firm Wallet
+Contract Type 4
 ===========
 
   Approver-1:
